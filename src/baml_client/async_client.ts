@@ -18,7 +18,7 @@ $ pnpm add @boundaryml/baml
 import { BamlRuntime, FunctionResult, BamlCtxManager, BamlStream, Image, ClientRegistry, BamlValidationError, createBamlValidationError } from "@boundaryml/baml"
 import { Checked, Check } from "./types"
 import "./partial_types"
-import {AskUser, AttemptCompletion, ListCodeDefinitionNames, ListFiles, ProjectEnvironment, ReadFile, Request, Resume, SearchAndReplace, SearchAndReplaceOperations, ToolRequest, ToolRequestResponse, UserResponse, WriteToFile} from "./types"
+import {AskUser, AttemptCompletion, FileReference, ListCodeDefinitionNames, ListFiles, ProjectEnvironment, ReadFile, Request, SearchAndReplace, SearchAndReplaceOperations, ToolRequest, ToolRequestResponse, UserResponse, WriteToFile} from "./types"
 import TypeBuilder from "./type_builder"
 import { DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_CTX, DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIME } from "./globals"
 
@@ -63,31 +63,6 @@ export class BamlAsyncClient {
     }
   }
   
-  async ExtractResume(
-      resume: string,
-      __baml_options__?: { tb?: TypeBuilder, clientRegistry?: ClientRegistry }
-  ): Promise<Resume> {
-    try {
-      const raw = await this.runtime.callFunction(
-        "ExtractResume",
-        {
-          "resume": resume
-        },
-        this.ctx_manager.cloneContext(),
-        __baml_options__?.tb?.__tb(),
-        __baml_options__?.clientRegistry,
-      )
-      return raw.parsed(false) as Resume
-    } catch (error: any) {
-      const bamlError = createBamlValidationError(error);
-      if (bamlError instanceof BamlValidationError) {
-        throw bamlError;
-      } else {
-        throw error;
-      }
-    }
-  }
-  
 }
 
 class BamlStreamClient {
@@ -113,39 +88,6 @@ class BamlStreamClient {
         raw,
         (a): a is partial_types.ToolRequest => a,
         (a): a is ToolRequest => a,
-        this.ctx_manager.cloneContext(),
-        __baml_options__?.tb?.__tb(),
-      )
-    } catch (error) {
-      if (error instanceof Error) {
-        const bamlError = createBamlValidationError(error);
-        if (bamlError instanceof BamlValidationError) {
-          throw bamlError;
-        }
-      }
-      throw error;
-    }
-  }
-  
-  ExtractResume(
-      resume: string,
-      __baml_options__?: { tb?: TypeBuilder, clientRegistry?: ClientRegistry }
-  ): BamlStream<partial_types.Resume, Resume> {
-    try {
-      const raw = this.runtime.streamFunction(
-        "ExtractResume",
-        {
-          "resume": resume
-        },
-        undefined,
-        this.ctx_manager.cloneContext(),
-        __baml_options__?.tb?.__tb(),
-        __baml_options__?.clientRegistry,
-      )
-      return new BamlStream<partial_types.Resume, Resume>(
-        raw,
-        (a): a is partial_types.Resume => a,
-        (a): a is Resume => a,
         this.ctx_manager.cloneContext(),
         __baml_options__?.tb?.__tb(),
       )

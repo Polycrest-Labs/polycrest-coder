@@ -1,26 +1,33 @@
-import { ChatRequest } from "vscode";
+import { ChatPromptReference, ChatRequest, Uri } from "vscode";
 import { Prompt, PromptFactory } from "./promptFactory";
 import { BamlRuntime } from "@polycrestlabs/baml";
 import { getBamlFiles } from "../baml_client/inlinedbaml";
-import { Request as BamlRequest } from "../baml_client/types";
+import { Request as BamlRequest, FileReference } from "../baml_client/types";
 import { Tool } from "./tools/Tool";
 import { ExecutionContext } from "./tools/ExecutionContext";
 import { listFiles } from "../utils/listFiles";
 import path from "path";
+import fs from "fs/promises";
 import { ListFilesTool } from "./tools/ListFiles";
+import { extractTextFromFile } from "../utils/extract-text";
+import { WorkflowRequest } from "./WorkflowRequest";
 
 
 export class BamlPromptFactory extends PromptFactory {
     constructor(private executionContext:ExecutionContext){
         super();
     }
-    async createPrompt(request: ChatRequest, previousToolResults:Tool[]) : Promise<Prompt> {
+    async createPrompt(request: WorkflowRequest, previousToolResults:Tool[]) : Promise<Prompt> {
+
+        const fileList = await BamlPromptFactory.getFileListFromReference(request.references);
+
+
          const absolutePath = path.resolve(this.executionContext.cwd, '.');
          const [files, didHitLimit] = await listFiles(absolutePath, false, 200);
 
         const bamlRequest: BamlRequest = {
-			request: request.prompt,
-			file_list: [],
+			request: request.userRequest,
+			file_list: fileList,
 			environment_details: {
                 osName: process.platform,
                 cwd: this.executionContext.cwd,
@@ -30,6 +37,23 @@ export class BamlPromptFactory extends PromptFactory {
 		};
         const prompts  = bamlRuntime.renderPrompt2("ExecuteAction",{request:bamlRequest});
         return {systemPrompt: prompts.system, userPrompts: prompts.chat.map((chat) => chat.message)};
+    }
+    static async getFileListFromReference(references: readonly Uri[]): Promise<FileReference[]> {
+        const fileList: FileReference[] = [];
+        for (const reference of references) {
+           
+                const isDirectory = (await fs.stat(reference.fsPath)).isDirectory();
+                if (isDirectory) continue;
+
+                const fileContent = await extractTextFromFile(reference.fsPath);;
+                const fileReference: FileReference = {
+                    path: reference.fsPath,
+                    content: fileContent,
+                };
+                fileList.push(fileReference);
+            
+        }
+        return fileList;
     }
 }
 

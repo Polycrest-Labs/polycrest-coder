@@ -1,11 +1,12 @@
 import { ChatRequest, LanguageModelChatMessage } from "vscode";
 import { Tool } from "./tools/Tool";
+import { WorkflowRequest } from "./WorkflowRequest";
 
 export class PromptFactory {
-    async createPrompt(request: ChatRequest, previousToolResults:Tool[]) : Promise<Prompt> {
+    async createPrompt(request: WorkflowRequest, previousToolResults:Tool[]) : Promise<Prompt> {
         return {systemPrompt:"safd", userPrompts:["sdf","sdf"]};
     }
-    async createPromptMessages(request: ChatRequest, previousToolResults:Tool[]) : Promise<LanguageModelChatMessage[]> {
+    async createPromptMessages(request: WorkflowRequest, previousToolResults:Tool[]) : Promise<LanguageModelChatMessage[]> {
         const prompt = await this.createPrompt(request,previousToolResults);
         const messages = [
             LanguageModelChatMessage.Assistant(prompt.systemPrompt),

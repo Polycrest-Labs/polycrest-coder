@@ -1,3 +1,4 @@
+
 class UserResponse {
   message_to_user string
 }
@@ -80,9 +81,13 @@ class ToolRequestResponse {
   tool_request ToolRequest
   response string
 }
+class FileReference {
+  path string
+  content string
+}
 class Request {
   request string
-  file_list string[]
+  file_list FileReference[]
   environment_details ProjectEnvironment
   previous_tool_results ToolRequestResponse[]
 }
@@ -129,11 +134,11 @@ You must response using one of these tools. If you want to communicate with the 
 <UserRequest>
   <Request>{{ request.request }}</Request>
   {% if request.file_list%}}
-<FileList>
+<ReferencedFiles>
   {% for file in request.file_list %}
-  <File>{{file}}</File>
+  <Path>{{file.path}}</Path><Content>{{file.content}}</Content>
   {% endfor %}
-</FileList>
+</ReferencedFiles>
 {% endif %}
 </UserRequest>
 {% if request.previous_tool_results%}}

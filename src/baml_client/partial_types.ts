@@ -43,6 +43,11 @@ export interface AttemptCompletion {
     command?: (string | null)
 }
 
+export interface FileReference {
+    path?: (string | null)
+    content?: (string | null)
+}
+
 export interface ListCodeDefinitionNames {
     tool_name: "list_code_definition_names"
     path?: (string | null)
@@ -67,16 +72,9 @@ export interface ReadFile {
 
 export interface Request {
     request?: (string | null)
-    file_list?: (string | null)[]
+    file_list?: partial_types.FileReference | null[]
     environment_details?: partial_types.ProjectEnvironment | null
     previous_tool_results?: partial_types.ToolRequestResponse | null[]
-}
-
-export interface Resume {
-    name?: (string | null)
-    email?: (string | null)
-    experience?: (string | null)[]
-    skills?: (string | null)[]
 }
 
 export interface SearchAndReplace {

@@ -48,6 +48,12 @@ export interface AttemptCompletion {
   
 }
 
+export interface FileReference {
+  path: string
+  content: string
+  
+}
+
 export interface ListCodeDefinitionNames {
   tool_name: "list_code_definition_names"
   path: string
@@ -76,17 +82,9 @@ export interface ReadFile {
 
 export interface Request {
   request: string
-  file_list: string[]
+  file_list: FileReference[]
   environment_details: ProjectEnvironment
   previous_tool_results: ToolRequestResponse[]
-  
-}
-
-export interface Resume {
-  name: string
-  email: string
-  experience: string[]
-  skills: string[]
   
 }
 
