@@ -24,32 +24,55 @@ const esbuildProblemMatcherPlugin = {
 };
 
 async function main() {
-	const ctx = await esbuild.context({
-		entryPoints: [
-			'src/extension.ts'
-		],
+	// Build context for extension
+	const extensionContext = await esbuild.context({
+		entryPoints: ['src/extension.ts'],
 		bundle: true,
 		format: 'cjs',
 		minify: production,
 		sourcemap: !production,
 		sourcesContent: false,
 		platform: 'node',
-		outfile: 'dist/extension.js',
-		external: ['vscode'],
+		outdir: 'dist',
+		external: ['vscode'], // keep vscode external for extension
 		logLevel: 'silent',
 		plugins: [
-			/* add to the end of plugins array */
+			// ...existing plugins...
 			esbuildProblemMatcherPlugin,
 		],
-		loader: {
-			'.node': 'copy'
-		  }
+		loader: { '.node': 'copy' }
+	});
+	// Build context for CLI (alias "vscode" to stub)
+	const cliContext = await esbuild.context({
+		entryPoints: ['src/cli.ts'],
+		bundle: true,
+		format: 'cjs',
+		minify: production,
+		sourcemap: !production,
+		sourcesContent: false,
+		platform: 'node',
+		outdir: 'dist',
+		// Removed external: ['vscode'] to bundle using our stub
+		logLevel: 'silent',
+		plugins: [
+			// ...existing plugins...
+			esbuildProblemMatcherPlugin,
+			{
+				name: 'vscode-alias',
+				setup(build) {
+					build.onResolve({ filter: /^vscode$/ }, args => ({
+						path: require.resolve('./src/vscode-stub.js')
+					}));
+				}
+			},
+		],
+		loader: { '.node': 'copy' }
 	});
 	if (watch) {
-		await ctx.watch();
+		await Promise.all([extensionContext.watch(), cliContext.watch()]);
 	} else {
-		await ctx.rebuild();
-		await ctx.dispose();
+		await Promise.all([extensionContext.rebuild(), cliContext.rebuild()]);
+		await Promise.all([extensionContext.dispose(), cliContext.dispose()]);
 	}
 }
 
